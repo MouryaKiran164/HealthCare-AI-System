@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Cancer Detection | HealthCare AI System</title>
+    <link rel="stylesheet" href="skin.css">
+</head>
+<body>
+
+<header class="navbar">
+    <a href="services.html" class="brand">✚ HealthCare AI</a>
+    <a href="services.html" class="back-link">← Back to Services</a>
+</header>
+
+<main class="container">
+    <p class="eyebrow">ARTIFICIAL INTELLIGENCE IN HEALTHCARE</p>
+    <h1>Skin Cancer Detection</h1>
+
+    <p class="subtitle">
+        Upload a skin-lesion image for experimental AI classification.
+    </p>
+
+    <section class="upload-card">
+        <div class="upload-icon">🔬</div>
+        <h2>Upload Skin Image</h2>
+        <p class="hint">Select a skin-lesion image from your device</p>
+
+        <input type="file" id="skinInput" accept="image/*" hidden>
+
+        <label for="skinInput" class="upload-button">
+            Choose Skin Image
+        </label>
+
+        <div id="previewArea" class="preview-area" hidden>
+            <img id="skinPreview" alt="Selected skin image preview">
+            <p id="fileName"></p>
+        </div>
+
+        <button type="button" id="analyzeButton"
+                class="analyze-button" disabled>
+            Detect Skin Lesion
+        </button>
+
+        <p id="statusMessage" role="status" aria-live="polite"></p>
+
+        <div id="resultBox" class="result-box" hidden>
+            <h2>AI Prediction Result</h2>
+            <p id="predictionLabel"></p>
+            <p id="predictionScore"></p>
+            <div id="probabilities"></div>
+
+            <p class="disclaimer">
+                This is an experimental skin-lesion classification result,
+                not a medical diagnosis. The model score is not the
+                probability that a lesion is cancerous. Consult a qualified
+                healthcare professional for medical concerns.
+            </p>
+        </div>
+    </section>
+
+    <p class="notice">
+        This educational project classifies skin-lesion images into
+        experimental categories. Use appropriate skin images. Results
+        should not be used to diagnose or rule out skin cancer.
+    </p>
+</main>
+
+<script>
+const skinInput = document.getElementById("skinInput");
+const previewArea = document.getElementById("previewArea");
+const skinPreview = document.getElementById("skinPreview");
+const fileName = document.getElementById("fileName");
+const analyzeButton = document.getElementById("analyzeButton");
+const statusMessage = document.getElementById("statusMessage");
+const resultBox = document.getElementById("resultBox");
+const predictionLabel = document.getElementById("predictionLabel");
+const predictionScore = document.getElementById("predictionScore");
+const probabilities = document.getElementById("probabilities");
+
+let selectedFile = null;
+let previewUrl = null;
+
+skinInput.addEventListener("change", () => {
+    const file = skinInput.files[0];
+
+    selectedFile = null;
+    analyzeButton.disabled = true;
+    resultBox.hidden = true;
+    previewArea.hidden = true;
+    statusMessage.textContent = "";
+    probabilities.replaceChildren();
+
+    if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+    }
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        statusMessage.textContent = "Please select a valid image.";
+        skinInput.value = "";
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        statusMessage.textContent = "Image must be smaller than 10 MB.";
+        skinInput.value = "";
+        return;
+    }
+
+    previewUrl = URL.createObjectURL(file);
+    skinPreview.src = previewUrl;
+
+    skinPreview.onload = () => {
+        selectedFile = file;
+        fileName.textContent = file.name;
+        previewArea.hidden = false;
+        analyzeButton.disabled = false;
+        statusMessage.textContent = "Image selected successfully.";
+    };
+
+    skinPreview.onerror = () => {
+        selectedFile = null;
+        skinInput.value = "";
+        previewArea.hidden = true;
+        analyzeButton.disabled = true;
+        statusMessage.textContent = "Could not preview this image.";
+
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+    };
+});
+
+analyzeButton.addEventListener("click", async () => {
+    if (!selectedFile) {
+        statusMessage.textContent = "Please select an image first.";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    analyzeButton.disabled = true;
+    resultBox.hidden = true;
+    statusMessage.textContent = "Analyzing image... Please wait.";
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:5000/predict-skin",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || `Server error: ${response.status}`
+            );
+        }
+
+        if (!data.prediction) {
+            throw new Error("No prediction was returned by the backend.");
+        }
+
+        predictionLabel.textContent =
+            "Prediction: " + data.prediction;
+
+        const score = Number(data.model_score);
+
+        predictionScore.textContent = Number.isFinite(score)
+            ? "Model score: " + score.toFixed(2) + "%"
+            : "Model score unavailable.";
+
+        probabilities.replaceChildren();
+
+        if (data.class_probabilities) {
+            const heading = document.createElement("h3");
+            heading.textContent = "Class scores";
+            probabilities.appendChild(heading);
+
+            for (const [label, value] of Object.entries(
+                data.class_probabilities
+            )) {
+                const line = document.createElement("p");
+                line.textContent =
+                    label + ": " + Number(value).toFixed(2) + "%";
+                probabilities.appendChild(line);
+            }
+        }
+
+        resultBox.hidden = false;
+        statusMessage.textContent =
+            "Classification completed. Experimental result only.";
+
+    } catch (error) {
+        console.error("Skin analysis error:", error);
+
+        statusMessage.textContent =
+            "Classification failed: " + error.message;
+
+        if (error instanceof TypeError) {
+            statusMessage.textContent +=
+                " Check that Flask is running and accessible.";
+        }
+    } finally {
+        analyzeButton.disabled = !selectedFile;
+    }
+});
+
+window.addEventListener("beforeunload", () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+});
+</script>
+
+</body>
+</html>

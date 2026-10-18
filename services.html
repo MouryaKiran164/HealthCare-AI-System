@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HealthCare AI System | Services</title>
+
+    <link rel="stylesheet" href="services.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="services.html" class="logo">HealthCare AI</a>
+
+        <nav>
+            <button type="button" id="logoutButton">
+                Logout
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <p class="eyebrow">
+                ARTIFICIAL INTELLIGENCE IN HEALTHCARE
+            </p>
+
+            <h1>Your Health, Supported by AI</h1>
+
+            <p>
+                Explore experimental AI models for medical image
+                classification.
+            </p>
+
+            <a class="primary-btn" href="#services">
+                Explore AI Services
+            </a>
+        </section>
+
+        <section id="services" class="services">
+            <h2>Our AI Services</h2>
+
+            <p class="section-text">
+                Choose a service to begin.
+            </p>
+
+            <div class="service-grid">
+
+                <!-- Lung Cancer Detection -->
+                <article class="service-card">
+                    <div class="service-icon">🫁</div>
+
+                    <h3>Lung Cancer Detection</h3>
+
+                    <p>
+                        Upload a supported lung image for an
+                        experimental AI prediction.
+                    </p>
+
+                    <a class="service-btn" href="lung_cancer.html">
+                        Start Detection
+                    </a>
+                </article>
+
+                <!-- Pneumonia Detection -->
+                <article class="service-card">
+                    <div class="service-icon">🩻</div>
+
+                    <h3>Pneumonia Detection</h3>
+
+                    <p>
+                        Upload a chest X-ray for an experimental
+                        pneumonia prediction.
+                    </p>
+
+                    <a class="service-btn" href="pneumonia.html">
+                        Start Detection
+                    </a>
+                </article>
+
+                <!-- Skin Cancer Detection -->
+                <article class="service-card">
+                    <div class="service-icon">🔬</div>
+
+                    <h3>Skin Cancer Detection</h3>
+
+                    <p>
+                        Upload a skin-lesion image for experimental
+                        AI-based skin lesion classification.
+                    </p>
+
+                    <a class="service-btn" href="skin.html">
+                        Start Detection
+                    </a>
+                </article>
+
+            </div>
+        </section>
+
+        <section id="about" class="about">
+            <h2>About This Project</h2>
+
+            <p>
+                This student project demonstrates image classification
+                using machine learning. Its predictions are experimental
+                and are not medical diagnoses.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <p>HealthCare AI System | Educational Project</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Check whether the user is logged in.
+            const isLoggedIn =
+                localStorage.getItem("loggedIn") === "true";
+
+            if (!isLoggedIn) {
+                window.location.replace("./index.html");
+                return;
+            }
+
+            // Logout functionality.
+            const logoutButton =
+                document.getElementById("logoutButton");
+
+            logoutButton.addEventListener("click", function () {
+                localStorage.removeItem("loggedIn");
+                localStorage.removeItem("userEmail");
+                sessionStorage.clear();
+
+                window.location.replace("./index.html");
+            });
+
+        });
+    </script>
+
+</body>
+</html>

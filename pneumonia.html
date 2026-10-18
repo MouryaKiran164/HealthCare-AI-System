@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pneumonia Detection | HealthCare AI System</title>
+    <link rel="stylesheet" href="pneumonia.css">
+</head>
+<body>
+
+<header class="navbar">
+    <a href="services.html" class="brand">✚ HealthCare AI</a>
+    <a href="services.html" class="back-link">← Back to Services</a>
+</header>
+
+<main class="container">
+    <p class="eyebrow">ARTIFICIAL INTELLIGENCE IN HEALTHCARE</p>
+    <h1>Pneumonia Detection</h1>
+    <p class="subtitle">
+        Upload a chest X-ray image for AI-powered pneumonia classification.
+    </p>
+
+    <section class="upload-card">
+        <div class="upload-icon">🩻</div>
+        <h2>Upload Chest X-ray</h2>
+
+        <p class="hint">
+            Select an image in JPG, JPEG, PNG, or WebP format
+        </p>
+
+        <input
+            type="file"
+            id="xrayInput"
+            accept="image/*"
+            hidden
+        >
+
+        <label for="xrayInput" class="upload-button">
+            Choose X-ray Image
+        </label>
+
+        <div id="previewArea" class="preview-area" hidden>
+            <img id="xrayPreview" alt="Selected chest X-ray preview">
+            <p id="fileName"></p>
+        </div>
+
+        <button id="analyzeButton" class="analyze-button" disabled>
+            Analyze X-ray
+        </button>
+
+        <p id="statusMessage" role="status" aria-live="polite"></p>
+
+        <div id="resultBox" class="result-box" hidden>
+            <h2>AI Prediction Result</h2>
+
+            <p id="predictionLabel"></p>
+            <p id="predictionScore"></p>
+
+            <h3>Class Probabilities</h3>
+            <p id="normalProbability"></p>
+            <p id="pneumoniaProbability"></p>
+
+            <p class="disclaimer">
+                This is an experimental AI prediction, not a medical
+                diagnosis. Consult a qualified healthcare professional.
+            </p>
+        </div>
+    </section>
+
+    <p class="notice">
+        Upload a chest X-ray for this demonstration. Your image will be
+        sent to the local AI backend for analysis.
+    </p>
+</main>
+
+<script>
+const xrayInput = document.getElementById("xrayInput");
+const previewArea = document.getElementById("previewArea");
+const xrayPreview = document.getElementById("xrayPreview");
+const fileName = document.getElementById("fileName");
+const analyzeButton = document.getElementById("analyzeButton");
+const statusMessage = document.getElementById("statusMessage");
+const resultBox = document.getElementById("resultBox");
+const predictionLabel = document.getElementById("predictionLabel");
+const predictionScore = document.getElementById("predictionScore");
+const normalProbability = document.getElementById("normalProbability");
+const pneumoniaProbability = document.getElementById("pneumoniaProbability");
+
+let selectedFile = null;
+let previewUrl = null;
+
+function clearPreview() {
+    if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+    }
+
+    xrayPreview.removeAttribute("src");
+    previewArea.hidden = true;
+}
+
+function formatPercent(value) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number) || number < 0) {
+        return null;
+    }
+
+    // Model probabilities are usually decimals between 0 and 1.
+    return (number <= 1 ? number * 100 : number).toFixed(2) + "%";
+}
+
+function getProbability(probabilities, className) {
+    if (!probabilities || typeof probabilities !== "object") {
+        return null;
+    }
+
+    const key = Object.keys(probabilities).find(
+        name => name.toLowerCase() === className.toLowerCase()
+    );
+
+    if (key === undefined) {
+        return null;
+    }
+
+    return formatPercent(probabilities[key]);
+}
+
+xrayInput.addEventListener("change", () => {
+    const file = xrayInput.files[0];
+
+    selectedFile = null;
+    analyzeButton.disabled = true;
+    resultBox.hidden = true;
+    statusMessage.textContent = "";
+
+    clearPreview();
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        statusMessage.textContent = "Please select a valid image file.";
+        xrayInput.value = "";
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        statusMessage.textContent = "Image must be smaller than 10 MB.";
+        xrayInput.value = "";
+        return;
+    }
+
+    selectedFile = file;
+    previewUrl = URL.createObjectURL(file);
+
+    xrayPreview.src = previewUrl;
+    fileName.textContent = file.name;
+    previewArea.hidden = false;
+    analyzeButton.disabled = false;
+});
+
+analyzeButton.addEventListener("click", async () => {
+    if (!selectedFile) {
+        statusMessage.textContent = "Please select a chest X-ray first.";
+        return;
+    }
+
+    analyzeButton.disabled = true;
+    resultBox.hidden = true;
+    statusMessage.textContent = "Analyzing image. Please wait...";
+
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:5000/predict",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Image analysis failed.");
+        }
+
+        if (!data.prediction) {
+            throw new Error("The backend did not return a prediction.");
+        }
+
+        predictionLabel.textContent =
+            "Prediction: " + data.prediction;
+
+        const score = formatPercent(data.model_score);
+
+        predictionScore.textContent = score !== null
+            ? "Model score: " + score
+            : "Model score: Not provided";
+
+        const probabilities = data.class_probabilities || {};
+
+        const normal = getProbability(probabilities, "normal");
+        const pneumonia = getProbability(probabilities, "pneumonia");
+
+        normalProbability.textContent =
+            "Normal cases: " + (normal ?? "Not provided");
+
+        pneumoniaProbability.textContent =
+            "Pneumonia cases: " + (pneumonia ?? "Not provided");
+
+        resultBox.hidden = false;
+        statusMessage.textContent = "Analysis complete.";
+
+    } catch (error) {
+        statusMessage.textContent =
+            "Analysis failed: " + error.message +
+            " Check that the Flask backend is running and supports /predict.";
+    } finally {
+        analyzeButton.disabled = false;
+    }
+});
+
+window.addEventListener("beforeunload", clearPreview);
+</script>
+
+</body>
+</html>

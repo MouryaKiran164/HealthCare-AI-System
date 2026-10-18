@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | HealthCare AI System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
+</head>
+<body>
+
+<div class="page-container">
+
+    <section class="medical-panel">
+
+        <header class="brand">
+            <div class="brand-icon">✚</div>
+            <div>
+                <h2>HealthCare <span>AI</span> System</h2>
+                <p>SMARTER DIAGNOSIS · BETTER TOMORROW</p>
+            </div>
+        </header>
+
+        <div class="medical-visual">
+            <div class="scan-circle">
+                <div class="lungs">🫁</div>
+                <div class="scan-label">AI MEDICAL SCANNER</div>
+                <div class="scan-line"></div>
+            </div>
+
+            <div class="scan-status">
+                <span class="online-dot"></span>
+                MEDICAL AI SYSTEM ONLINE
+            </div>
+        </div>
+
+        <div class="service-list">
+
+            <div class="service-item">
+                <span class="service-icon">🫁</span>
+                <div>
+                    <h3>Lung Cancer Detection</h3>
+                    <p>AI-assisted lung image analysis</p>
+                </div>
+            </div>
+
+            <div class="service-item">
+                <span class="service-icon">🩻</span>
+                <div>
+                    <h3>Pneumonia Detection</h3>
+                    <p>Chest X-ray image classification</p>
+                </div>
+            </div>
+
+            <div class="service-item">
+                <span class="service-icon">🔬</span>
+                <div>
+                    <h3>Skin Cancer Detection</h3>
+                    <p>AI-assisted skin image analysis</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="medical-footer">
+            <span>◈ AI-POWERED HEALTHCARE</span>
+            <span>◉ DIGITAL MEDICAL ANALYSIS</span>
+        </div>
+
+    </section>
+
+    <section class="login-panel">
+
+        <div class="login-card">
+
+            <div class="shield">✚</div>
+
+            <h1>Welcome Back</h1>
+
+            <p class="subtitle">
+                Sign in to access your AI healthcare services
+            </p>
+
+            <form id="loginForm">
+
+                <label for="email">Email Address</label>
+
+                <div class="input-box">
+                    <span>✉</span>
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <label for="password">Password</label>
+
+                <div class="input-box">
+                    <span>♙</span>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        id="togglePassword"
+                        aria-label="Show password"
+                    >◉</button>
+                </div>
+
+                <div class="login-options">
+                    <label class="remember">
+                        <input type="checkbox" id="remember">
+                        Remember me
+                    </label>
+
+                    <a href="#" id="forgotLink">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginButton">
+                    Login <span>→</span>
+                </button>
+
+                <p id="message" role="status" aria-live="polite"></p>
+
+                <div class="or-divider">
+                    <span></span>
+                    <p>OR</p>
+                    <span></span>
+                </div>
+
+                <p class="register-text">
+                    Don't have an account?
+                    <a href="register.html">Register</a>
+                </p>
+
+            </form>
+
+            <div class="security-note">
+                <span>♧</span>
+                Educational prototype · Not for medical diagnosis
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+</body>
+</html>
